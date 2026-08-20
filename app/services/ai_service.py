@@ -32,7 +32,7 @@ class AIService:
         ]
 
         if gecmis:
-            messages.extend(gecmis[-6:])
+            messages.extend(gecmis[-2:])
 
         messages.append({
             "role": "user",
