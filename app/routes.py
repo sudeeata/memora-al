@@ -1,85 +1,78 @@
-from flask import Blueprint, jsonify, render_template, request
+import requests
 
-from app.database import lead_ekle, tum_leadler
-from app.services.ai_service import ai_service, AIServiceError
-
-
-pages_bp = Blueprint("pages", __name__)
-api_bp = Blueprint("api", __name__)
+from config import Config
 
 
-@pages_bp.route("/")
-def ana_sayfa():
-    return render_template("index.html")
+class AIServiceError(Exception):
+    pass
 
 
-@pages_bp.route("/dashboard")
-def dashboard():
-    return render_template("dashboard.html")
+class AIService:
+    def __init__(self):
+        self.api_key = Config.GROQ_API_KEY
+        self.api_url = "https://api.groq.com/openai/v1/chat/completions"
+        self.model = "openai/gpt-oss-120b"
+
+    def yanit_uret(self, mesaj, gecmis=None):
+        if not self.api_key:
+            return (
+                "Demo modu aktif. Groq API anahtari tanimlandiginda "
+                "Al seyahat asistani yanit vermeye baslayacak."
+            )
+
+        kullanici_mesaji = str(mesaj)[:1000]
+
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "Sen Memora Al'in yapay zeka seyahat asistanisin. "
+                    "Kullaniciya Turkce, anlasilir ve samimi cevaplar ver. "
+                    "Seyahat rotasi, gezi plani ve destinasyon onerileri sun."
+                )
+            },
+            {
+                "role": "user",
+                "content": kullanici_mesaji
+            }
+        ]
+
+        data = {
+            "model": self.model,
+            "messages": messages
+        }
+
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+
+        try:
+            response = requests.post(
+                self.api_url,
+                headers=headers,
+                json=data,
+                timeout=60
+            )
+
+            if response.status_code != 200:
+                raise AIServiceError(
+                    f"Groq API hatasi: {response.status_code} - {response.text}"
+                )
+
+            result = response.json()
+
+            return result["choices"][0]["message"]["content"]
+
+        except requests.RequestException as error:
+            raise AIServiceError(
+                f"Groq API baglanti hatasi: {error}"
+            ) from error
+
+        except (KeyError, IndexError, TypeError) as error:
+            raise AIServiceError(
+                "Yapay zeka servisinden beklenmeyen bir yanit alindi."
+            ) from error
 
 
-@api_bp.route("/sohbet", methods=["POST"])
-def sohbet():
-    data = request.get_json() or {}
-
-    mesaj = data.get("mesaj")
-    gecmis = data.get("gecmis", [])
-
-    if not mesaj:
-        return jsonify({
-            "basari": False,
-            "hata": "Mesaj alani zorunludur."
-        }), 400
-
-    try:
-        yanit = ai_service.yanit_uret(
-            mesaj=mesaj,
-            gecmis=gecmis
-        )
-
-        return jsonify({
-            "basari": True,
-            "yanit": yanit
-        })
-
-    except AIServiceError as error:
-        return jsonify({
-            "basari": False,
-            "hata": str(error)
-        }), 503
-
-
-@api_bp.route("/leads", methods=["POST"])
-def lead_kaydet():
-    data = request.get_json() or {}
-
-    isim = data.get("isim")
-    telefon = data.get("telefon")
-    mesaj = data.get("mesaj")
-
-    if not isim or not telefon:
-        return jsonify({
-            "basari": False,
-            "hata": "Isim ve telefon alanlari zorunludur."
-        }), 400
-
-    lead_ekle(
-        isim=isim,
-        telefon=telefon,
-        mesaj=mesaj
-    )
-
-    return jsonify({
-        "basari": True,
-        "mesaj": "Kayit basariyla olusturuldu."
-    }), 201
-
-
-@api_bp.route("/leads", methods=["GET"])
-def leadleri_getir():
-    leadler = tum_leadler()
-
-    return jsonify({
-        "basari": True,
-        "leadler": leadler
-    })
+ai_service = AIService()
