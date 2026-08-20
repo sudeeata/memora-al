@@ -20,6 +20,8 @@ class AIService:
                 "Al seyahat asistani yanit vermeye baslayacak."
             )
 
+        kullanici_mesaji = str(mesaj)[:1000]
+
         messages = [
             {
                 "role": "system",
@@ -28,23 +30,12 @@ class AIService:
                     "Kullaniciya Turkce, anlasilir ve samimi cevaplar ver. "
                     "Seyahat rotasi, gezi plani ve destinasyon onerileri sun."
                 )
+            },
+            {
+                "role": "user",
+                "content": kullanici_mesaji
             }
         ]
-
-        if gecmis:
-            for mesaj_gecmisi in gecmis[-1:]:
-                if isinstance(mesaj_gecmisi, dict):
-                    icerik = mesaj_gecmisi.get("content", "")
-
-                    if isinstance(icerik, str):
-                        mesaj_gecmisi = mesaj_gecmisi.copy()
-                        mesaj_gecmisi["content"] = icerik[:1000]
-                        messages.append(mesaj_gecmisi)
-
-        messages.append({
-            "role": "user",
-            "content": mesaj
-        })
 
         data = {
             "model": self.model,
