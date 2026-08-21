@@ -83,7 +83,7 @@ def lead_kaydet():
 
     isim = data.get("isim")
     telefon = data.get("telefon")
-    mesaj = data.get("mesaj")
+    mesaj = data.get("seyahatPlani")
 
     if not isim or not telefon:
         return jsonify({
