@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Memora Al Yönetim Paneli</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f5f5f5;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SOL MENÜ */
+
+        .sidebar {
+            width: 230px;
+            background: #000;
+            color: white;
+            padding: 40px 20px;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        .sidebar a,
+        .sidebar button {
+            width: 100%;
+            display: block;
+            margin-bottom: 14px;
+            padding: 14px;
+
+            background: white;
+            color: black;
+
+            text-decoration: none;
+            border: none;
+
+            cursor: pointer;
+            font-size: 16px;
+            text-align: left;
+        }
+
+        .sidebar a:hover,
+        .sidebar button:hover {
+            background: #e8e8e8;
+        }
+
+        /* ANA ALAN */
+
+        .main {
+            flex: 1;
+            background: #a90000;
+            padding: 45px;
+        }
+
+        /* ÜST KARTLAR */
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 28px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            min-height: 160px;
+        }
+
+        .card h3 {
+            font-size: 22px;
+            margin-bottom: 25px;
+        }
+
+        .card .number {
+            font-size: 34px;
+            font-weight: bold;
+        }
+
+        /* MÜŞTERİ ADAYLARI */
+
+        .panel {
+            background: white;
+            padding: 30px;
+            min-height: 350px;
+        }
+
+        .panel h2 {
+            margin-bottom: 25px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 14px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #f4f4f4;
+        }
+
+        .empty {
+            color: #777;
+            padding-top: 20px;
+        }
+
+        /* TELEFON / TABLET */
+
+        @media (max-width: 900px) {
+
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+
+<body>
+
+    <!-- SOL MENÜ -->
+
+    <aside class="sidebar">
+
+        <h2>Ana Menü</h2>
+
+        <a href="/">
+            Karşılama Paneli
+        </a>
+
+        <a href="/dashboard">
+            Yönetim Paneli
+        </a>
+
+
+        <h2 style="margin-top: 35px;">
+            Araçlar
+        </h2>
+
+        <button onclick="location.reload()">
+            Verileri Yenile
+        </button>
+
+        <button>
+            CSV İndir
+        </button>
+
+    </aside>
+
+
+    <!-- ANA YÖNETİM PANELİ -->
+
+    <main class="main">
+
+        <!-- İSTATİSTİK KARTLARI -->
+
+        <section class="cards">
+
+            <!-- TOPLAM TALEP -->
+
+            <div class="card">
+
+                <h3>Toplam Talep</h3>
+
+                <div class="number">
+                    {{ toplam_talep }}
+                </div>
+
+            </div>
+
+
+            <!-- BU AY -->
+
+            <div class="card">
+
+                <h3>Bu Ay</h3>
+
+                <div class="number">
+                    {{ bu_ay_talep }}
+                </div>
+
+            </div>
+
+
+            <!-- BUGÜN -->
+
+            <div class="card">
+
+                <h3>Bugün</h3>
+
+                <div class="number">
+                    {{ bugun_talep }}
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- MÜŞTERİ ADAYLARI -->
+
+        <section class="panel">
+
+            <h2>Müşteri Adayları</h2>
+
+
+            {% if leadler %}
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>İsim</th>
+                        <th>Telefon</th>
+                        <th>Mesaj</th>
+                        <th>Tarih</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for lead in leadler %}
+
+                    <tr>
+
+                        <td>
+                            {{ lead.isim }}
+                        </td>
+
+                        <td>
+                            {{ lead.telefon }}
+                        </td>
+
+                        <td>
+                            {{ lead.mesaj or "-" }}
+                        </td>
+
+                        <td>
+                            {{ lead.tarih }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+
+            {% else %}
+
+            <p class="empty">
+                Henüz müşteri adayı bulunmuyor.
+            </p>
+
+            {% endif %}
+
+        </section>
+
+    </main>
+
+</body>
+
+</html>

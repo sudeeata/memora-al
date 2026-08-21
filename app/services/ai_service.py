@@ -20,7 +20,13 @@ class AIService:
                 "Al seyahat asistani yanit vermeye baslayacak."
             )
 
-        kullanici_mesaji = str(mesaj)[:1000]
+        kullanici_mesaji = str(mesaj).strip()
+
+        if not kullanici_mesaji:
+            return "Lütfen bir mesaj yazın."
+
+        # Çok uzun mesajları sınırla
+        kullanici_mesaji = kullanici_mesaji[:500]
 
         messages = [
             {
@@ -39,7 +45,8 @@ class AIService:
 
         data = {
             "model": self.model,
-            "messages": messages
+            "messages": messages,
+            "max_tokens": 500
         }
 
         headers = {
@@ -52,12 +59,19 @@ class AIService:
                 self.api_url,
                 headers=headers,
                 json=data,
-                timeout=60
+                timeout=30
             )
 
             if response.status_code != 200:
+                # Gerçek hata sunucu logunda kalır
+                print(
+                    f"Groq API hatasi: "
+                    f"{response.status_code} - {response.text}"
+                )
+
                 raise AIServiceError(
-                    f"Groq API hatasi: {response.status_code} - {response.text}"
+                    "Al şu anda yanıtını oluşturamadı. "
+                    "Lütfen tekrar deneyin. ✨"
                 )
 
             result = response.json()
@@ -65,13 +79,19 @@ class AIService:
             return result["choices"][0]["message"]["content"]
 
         except requests.RequestException as error:
+            print(f"Groq baglanti hatasi: {error}")
+
             raise AIServiceError(
-                f"Groq API baglanti hatasi: {error}"
+                "Al şu anda yanıtını oluşturamadı. "
+                "Lütfen tekrar deneyin. ✨"
             ) from error
 
         except (KeyError, IndexError, TypeError) as error:
+            print(f"Groq yanit hatasi: {error}")
+
             raise AIServiceError(
-                "Yapay zeka servisinden beklenmeyen bir yanit alindi."
+                "Al şu anda yanıtını oluşturamadı. "
+                "Lütfen tekrar deneyin. ✨"
             ) from error
 
 
